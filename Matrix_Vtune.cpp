@@ -11,13 +11,23 @@ void Matrix_com(int** m, int* vec, int* sum, int n) {
     }
     return;
 }
-
+void Matrix_opt(int** m, int* vec, int* sum, int n) {
+    for (int i = 0; i < n; i++) {
+        sum[i] = 0;
+    }
+    for (int j = 0; j < n; j++) {
+        for (int i = 0; i < n; i++) {
+            sum[i] += m[j][i] * vec[j];
+        }
+    }
+    return;
+}
 
 
 
 
 int main() {
-    const int N = 500;         // 矩阵规模
+    const int N = 1000;         // 矩阵规模
     const int REPEATS = 1000;   // 执行次数
 
     // 动态申请二维数组 matrix[N][N]
@@ -39,7 +49,8 @@ int main() {
 
     // 执行 1000 次算法
     for (int t = 0; t < REPEATS; ++t) {
-        Matrix_com(matrix, vector, result, N);
+        //Matrix_com(matrix, vector, result, N);
+        Matrix_opt(matrix, vector, result, N);
     }
 
     // 输出一个结果，防止被优化

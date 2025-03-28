@@ -17,16 +17,39 @@ int sumN_com(int* a, int n) {
 }
 
 // 多路链式求和
-int sumN_optN(int* a, int n, int N) {
-    vector<int> sumi(N, 0);
-    for (int i = 0; i < n; i += N) {
-        for (int j = 0; j < N && (i + j) < n; j++) {
-            sumi[j] += a[i + j];
+int sumN_opt2_no_unroll(int* a, int n) {
+    int sumi[2] = { 0 };
+    int sum = 0;
+    for (int i = 0; i < n; i += 2) {
+        for (int j = 0; j < 2; j++) {
+            if (i + j < n) {
+                sumi[j] += a[i + j];
+            }
         }
     }
-    int total = 0;
-    for (int s : sumi) total += s;
-    return total;
+    for (int i = 0; i < 2; i++) {
+        sum += sumi[i];
+    }
+    volatile int dummy = sum; // 防止优化
+    return sum;
+}
+
+// 不展开的多路求和 N = 4
+int sumN_opt4_no_unroll(int* a, int n) {
+    int sumi[4] = { 0 };
+    int sum = 0;
+    for (int i = 0; i < n; i += 4) {
+        for (int j = 0; j < 4; j++) {
+            if (i + j < n) {
+                sumi[j] += a[i + j];
+            }
+        }
+    }
+    for (int i = 0; i < 4; i++) {
+        sum += sumi[i];
+    }
+    volatile int dummy = sum; // 防止优化
+    return sum;
 }
 
 // 递归求和（会修改原数组）
@@ -49,10 +72,10 @@ void test_sumN_com(int* a, int n, int count) {
 // 测试函数2：多路链式求和，执行 count 次
 void test_sumN_optN(int* a, int n, int N, int count) {
     for (int i = 0; i < count; i++) {
-        dummy += sumN_optN(a, n, N);
+        dummy += sumN_opt2_no_unroll(a, n);
+        //dummy += sumN_opt4_no_unroll(a, n);
     }
 }
-
 // 测试函数3：递归求和，执行 count 次（每次复制数组，避免修改原始数据）
 void test_sumN_recursion(int* a, int n, int count) {
     for (int i = 0; i < count; i++) {
@@ -62,7 +85,7 @@ void test_sumN_recursion(int* a, int n, int count) {
 }
 
 int main() {
-    const int n = 1 << 14;          // 数据规模，例如 2^14
+    const int n = 1 << 18;          // 数据规模，例如 2^14
     const int count = 10000;        // 每个算法执行次数
     const int opt_N = 2;            // 多路链式 N
 
@@ -73,10 +96,10 @@ int main() {
     }
 
     //cout << "开始执行 sumN_com..." << endl;
-    test_sumN_com(a, n, count);
+    //test_sumN_com(a, n, count);
 
     //cout << "开始执行 sumN_optN..." << endl;
-    //test_sumN_optN(a, n, opt_N, count);
+    test_sumN_optN(a, n, 2, count);
 
     //cout << "开始执行 sumN_recursion..." << endl;
     //test_sumN_recursion(a, n, count);
